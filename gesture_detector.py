@@ -1,4 +1,4 @@
-from evdev import InputDevice, list_devices
+from evdev import InputDevice, list_devices, ecodes
 import asyncio
 
 def find_trackpad():
