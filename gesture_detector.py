@@ -17,7 +17,8 @@ trackpad = find_trackpad()
 
 async def read_events(device):
     async for event in device.async_read_loop():
-        print(f"Type: {event.type}, Code: {event.code}, Value: {event.value}")
+        if event.type == 1 or event.type == 3:
+            print(f"Type: {event.type}, Code: {event.code}, Value: {event.value}")
 
 
 if trackpad is not None:
