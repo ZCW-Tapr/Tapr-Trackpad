@@ -1,4 +1,5 @@
 from evdev import InputDevice, list_devices
+import asyncio
 
 def find_trackpad():
     devices = [InputDevice(path) for path in list_devices()]
@@ -14,4 +15,10 @@ def find_trackpad():
 
 trackpad = find_trackpad()
 
-print(trackpad)
+async def read_events(device):
+    async for event in device.async_read_loop():
+        print(f"Type: {event.type}, Code: {event.code}, Value: {event.value}")
+
+
+if trackpad is not None:
+    asyncio.run(read_events(trackpad))
