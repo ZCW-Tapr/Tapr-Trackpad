@@ -33,7 +33,23 @@ async def read_events(device):
                 gesture_state["start_y"] = 0
             elif event.code == 57 and event.value == -1:
                 gesture_state["touching"] = False
-                print("Finger lifted")
+                gesture_state["touching"] = False
+                dx = abs(gesture_state["current_x"] - gesture_state["start_x"])
+                dy = abs(gesture_state["current_y"] - gesture_state["start_y"])
+
+                if dx < 30 and dy < 30:
+                    print("Tap detected")
+                else:
+                    if dx > dy:
+                        if gesture_state["current_x"] > gesture_state["start_x"]:
+                            print("Slide right")
+                        else:
+                            print("Slide left")
+                    else:
+                        if gesture_state["current_y"] > gesture_state["start_y"]:
+                            print("Slide down")
+                        else:
+                            print("Slide up")
             elif event.code == 53:
                 gesture_state["current_x"] = event.value
                 if gesture_state["start_x"] == 0:
