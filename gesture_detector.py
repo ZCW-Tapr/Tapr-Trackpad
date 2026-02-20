@@ -24,7 +24,7 @@ gesture_state = {
     "current_y": 0,
     "touching": False,
     "current_slot": 0,
-    "life_time": 0
+    "lift_time": 0
 }
 
 async def read_events(device):
@@ -32,7 +32,7 @@ async def read_events(device):
 
         if event.type == 1 or event.type == 3:
 
-            #Checking if enough time has time has passed after a lift of finger to process a gesture.
+            #Checking if enough time has passed after a lift of finger to process a gesture.
             if gesture_state["lift_time"] > 0 and time.time() - gesture_state["lift_time"] > 0.05:
                 gesture_state["lift_time"] = 0
                 dx = abs(gesture_state["current_x"] - gesture_state["start_x"])
