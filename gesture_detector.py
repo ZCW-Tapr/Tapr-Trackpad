@@ -31,7 +31,7 @@ async def read_events(device):
                 gesture_state["touching"] = True
                 gesture_state["start_x"] = 0
                 gesture_state["start_y"] = 0
-            elif event.code == 57 and event.value == -1:
+            elif event.code == 330 and event.value == 0:
                 gesture_state["touching"] = False
                 dx = abs(gesture_state["current_x"] - gesture_state["start_x"])
                 dy = abs(gesture_state["current_y"] - gesture_state["start_y"])
