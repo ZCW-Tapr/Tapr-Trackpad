@@ -58,6 +58,7 @@ async def read_events(device):
                 gesture_state["start_x"] = 0
                 gesture_state["start_y"] = 0
                 gesture_state["current_slot"] = 0
+                gesture_state["lift_time"] = 0
 
             #Code 47 (ABS_MT_SLOT): Which finger (0 = first, 1 = second, 2 = third)
             elif event.code == 47:
