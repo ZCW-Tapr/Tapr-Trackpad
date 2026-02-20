@@ -39,6 +39,9 @@ async def read_events(device):
                 dx = abs(gesture_state["current_x"] - gesture_state["start_x"])
                 dy = abs(gesture_state["current_y"] - gesture_state["start_y"])
 
+                #Debugging issues with output confusions with input
+                print(f"DEBUG: dx={dx}, dy={dy}, fingers={gesture_state['finger_count']}")
+
                 if dx < 30 and dy < 30:
                     print(f"Tap detected - {gesture_state['finger_count']} finger")
                 else:
