@@ -32,7 +32,7 @@ gesture_state = {
 # <-- Process Gesture -->
 # Called 100ms after all fingers lift to allow finger count to settle
 async def process_gesture():
-    await asyncio.sleep(0.1)
+    await asyncio.sleep(0.15)
 
     # ***Protect process_gesture from None values***
     if gesture_state["start_x"] is None or gesture_state["start_y"] is None:
@@ -89,8 +89,6 @@ async def read_events(device):
             # Code 333 (BTN_TOOL_DOUBLETAP): 2 fingers on pad
             elif event.code == 333 and event.value == 1:
                 gesture_state["finger_count"] = 2
-                gesture_state["start_x"] = gesture_state["current_x"]
-                gesture_state["start_y"] = gesture_state["current_y"]
 
 #Start
 if trackpad is not None:
