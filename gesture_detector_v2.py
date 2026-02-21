@@ -3,6 +3,23 @@
 from evdev import InputDevice, list_devices, ecodes
 import asyncio
 import time
+import json
+import websockets
+
+WS_URL = ("ws://YOUR_BACKEND_IP:8080/ws/gestures")
+
+async def send_gesture(finger_count, gesture_type, value=None):
+    message = {
+        "fingerCount": finger_count,
+        "gestureType": gesture_type,
+        "value": value
+    }
+    try:
+        async with websockets.connect(WS_URL) as ws:
+            await ws.send(json.dumps(message))
+            print(f"Sent: {message}")
+    except Exception as e:
+        print(f"Websocket error: {e}")
 
 # Find Trackpad Device
 def find_trackpad():
@@ -28,7 +45,8 @@ gesture_state = {
     "current_y": 0,         # Current Y position of finger
     "touching": False,       # Whether any finger is currently on the pad
     "current_slot": 0,      # Which finger slot is being reported (0=first, 1=second)
-    "last_tap_time": 0      # Timing between finger tap interactions
+    "last_tap_time": 0,      # Timing between finger tap interactions
+    "max_finger_count": 0
 }
 
 # <-- Process Gesture -->
@@ -51,9 +69,11 @@ async def process_gesture():
         if now - gesture_state["last_tap_time"] < 0.5:
             gesture_state["last_tap_time"] = 0
             print(f"Double Tap detected - {gesture_state['finger_count']} finger")
+            await send_gesture(gesture_state["max_finger_count"], "double_tap")
         else:
             gesture_state["last_tap_time"] = now
             print(f"Tap detected - {gesture_state['finger_count']} finger")
+            await send_gesture(gesture_state["max_finger_count"], "tap")
 
     else:
         # If finger moves more in the x-axis and above 50 pixels from starting position, then it checks if the state
@@ -63,17 +83,23 @@ async def process_gesture():
             # value, then this is confirmation for a slide right.
             if gesture_state["current_x"] > gesture_state["start_x"]:
                 print(f"Slide right - {gesture_state['finger_count']} finger")
+                await send_gesture(gesture_state["max_finger_count"], "slide_right")
 
             # Or if the finger releases from the pad and the value is negative on the x-axis, then it's a slide left.
             else:
                 print(f"Slide left - {gesture_state['finger_count']} finger")
+                await send_gesture(gesture_state["max_finger_count"], "slide_left")
 
         # Same applies here, but now with the y-axis
         else:
             if gesture_state["current_y"] > gesture_state["start_y"]:
                 print(f"Slide down - {gesture_state['finger_count']} finger")
+                await send_gesture(gesture_state["max_finger_count"], "slide_down")
+
             else:
                 print(f"Slide up - {gesture_state['finger_count']} finger")
+                await send_gesture(gesture_state["max_finger_count"], "slide_up")
+
 
 # <-- Read Events Loop -->
 # Reads raw events from the trackpad and updates gesture state
@@ -89,6 +115,8 @@ async def read_events(device):
                 gesture_state["start_x"] = None
                 gesture_state["start_y"] = None
                 gesture_state["current_slot"] = 0
+                gesture_state["max_finger_count"] = 0
+
                 # Cancel any pending gesture processing from previous touch
                 if pending_task is not None:
                     pending_task.cancel()
@@ -119,10 +147,12 @@ async def read_events(device):
             # Code 325 (BTN_TOOL_FINGER): 1 finger on pad
             elif event.code == 325 and event.value == 1:
                 gesture_state["finger_count"] = 1
+                gesture_state["max_finger_count"] = max(gesture_state["max_finger_count"], 1)
 
             # Code 333 (BTN_TOOL_DOUBLETAP): 2 fingers on pad
             elif event.code == 333 and event.value == 1:
                 gesture_state["finger_count"] = 2
+                gesture_state["max_finger_count"] = max(gesture_state["max_finger_count"], 2)
 
 #Start
 if trackpad is not None:
