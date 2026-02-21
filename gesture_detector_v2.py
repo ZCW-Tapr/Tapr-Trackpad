@@ -32,7 +32,7 @@ gesture_state = {
 # <-- Process Gesture -->
 # Called 100ms after all fingers lift to allow finger count to settle
 async def process_gesture():
-    await asyncio.sleep(0.15)
+    await asyncio.sleep(0.2)
 
     # ***Protect process_gesture from None values***
     if gesture_state["start_x"] is None or gesture_state["start_y"] is None:
@@ -40,6 +40,20 @@ async def process_gesture():
     dx = abs(gesture_state["current_x"] - gesture_state["start_x"])
     dy = abs(gesture_state["current_y"] - gesture_state["start_y"])
     print(f"DEBUG: dx={dx}, dy={dy}, fingers={gesture_state['finger_count']}")
+
+    if dx < 50 and dy < 50:
+        print(f"Tap detected - {gesture_state['finger_count']} finger")
+    else:
+        if dx > dy:
+            if gesture_state["current_x"] > gesture_state["start_x"]:
+                print(f"Slide right - {gesture_state['finger_count']} finger")
+            else:
+                print(f"Slide left - {gesture_state['finger_count']} finger")
+        else:
+            if gesture_state["current_y"] > gesture_state["start_y"]:
+                print(f"Slide down - {gesture_state['finger_count']} finger")
+            else:
+                print(f"Slide up - {gesture_state['finger_count']} finger")
 
 # <-- Read Events Loop -->
 # Reads raw events from the trackpad and updates gesture state
