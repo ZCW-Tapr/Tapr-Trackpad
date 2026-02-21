@@ -2,6 +2,7 @@
 
 from evdev import InputDevice, list_devices, ecodes
 import asyncio
+import time
 
 # Find Trackpad Device
 def find_trackpad():
@@ -26,13 +27,14 @@ gesture_state = {
     "current_x": 0,         # Current X position of finger
     "current_y": 0,         # Current Y position of finger
     "touching": False,       # Whether any finger is currently on the pad
-    "current_slot": 0       # Which finger slot is being reported (0=first, 1=second)
+    "current_slot": 0,      # Which finger slot is being reported (0=first, 1=second)
+    "last_tap_time": 0      # Timing between finger tap interactions
 }
 
 # <-- Process Gesture -->
-# Called 100ms after all fingers lift to allow finger count to settle
+# Called 300ms after all fingers lift to allow finger count to settle
 async def process_gesture():
-    await asyncio.sleep(0.2)
+    await asyncio.sleep(0.3)
 
     # ***Protect process_gesture from None values***
     if gesture_state["start_x"] is None or gesture_state["start_y"] is None:
@@ -41,14 +43,32 @@ async def process_gesture():
     dy = abs(gesture_state["current_y"] - gesture_state["start_y"])
     print(f"DEBUG: dx={dx}, dy={dy}, fingers={gesture_state['finger_count']}")
 
+    # *** If tapping, make sure that movement does not exceed 50 pixels either direction ***
     if dx < 50 and dy < 50:
-        print(f"Tap detected - {gesture_state['finger_count']} finger")
+        # Time tracking
+        now = time.time()
+        # Measuring tapping time at 500ms
+        if now - gesture_state["last_tap_time"] < 0.5:
+            gesture_state["last_tap_time"] = 0
+            print(f"Double Tap detected - {gesture_state['finger_count']} finger")
+        else:
+            gesture_state["last_tap_time"] = now
+            print(f"Tap detected - {gesture_state['finger_count']} finger")
+
     else:
+        # If finger moves more in the x-axis and above 50 pixels from starting position, then it checks if the state
+        # moved significantly from the starting position of the finger.
         if dx > dy:
+            # When the finger releases from the pad, if the ending state is greater than where it started in positive
+            # value, then this is confirmation for a slide right.
             if gesture_state["current_x"] > gesture_state["start_x"]:
                 print(f"Slide right - {gesture_state['finger_count']} finger")
+
+            # Or if the finger releases from the pad and the value is negative on the x-axis, then it's a slide left.
             else:
                 print(f"Slide left - {gesture_state['finger_count']} finger")
+
+        # Same applies here, but now with the y-axis
         else:
             if gesture_state["current_y"] > gesture_state["start_y"]:
                 print(f"Slide down - {gesture_state['finger_count']} finger")
