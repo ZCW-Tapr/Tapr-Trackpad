@@ -61,7 +61,7 @@ async def process_gesture():
         return
     dx = abs(gesture_state["current_x"] - gesture_state["start_x"])
     dy = abs(gesture_state["current_y"] - gesture_state["start_y"])
-    print(f"DEBUG: dx={dx}, dy={dy}, fingers={gesture_state['finger_count']}")
+    print(f"DEBUG: dx={dx}, dy={dy}, fingers={gesture_state['max_finger_count']}")
 
     # *** If tapping, make sure that movement does not exceed 50 pixels either direction ***
     if dx < 50 and dy < 50:
@@ -70,11 +70,11 @@ async def process_gesture():
         # Measuring tapping time at 500ms
         if now - gesture_state["last_tap_time"] < 0.5:
             gesture_state["last_tap_time"] = 0
-            print(f"Double Tap detected - {gesture_state['finger_count']} finger")
+            print(f"Double Tap detected - {gesture_state['max_finger_count']} finger")
             await send_gesture(gesture_state["max_finger_count"], "double_tap")
         else:
             gesture_state["last_tap_time"] = now
-            print(f"Tap detected - {gesture_state['finger_count']} finger")
+            print(f"Tap detected - {gesture_state['max_finger_count']} finger")
             await send_gesture(gesture_state["max_finger_count"], "tap")
 
     else:
@@ -84,22 +84,22 @@ async def process_gesture():
             # When the finger releases from the pad, if the ending state is greater than where it started in positive
             # value, then this is confirmation for a slide right.
             if gesture_state["current_x"] > gesture_state["start_x"]:
-                print(f"Slide right - {gesture_state['finger_count']} finger")
+                print(f"Slide right - {gesture_state['max_finger_count']} finger")
                 await send_gesture(gesture_state["max_finger_count"], "slide_right")
 
             # Or if the finger releases from the pad and the value is negative on the x-axis, then it's a slide left.
             else:
-                print(f"Slide left - {gesture_state['finger_count']} finger")
+                print(f"Slide left - {gesture_state['max_finger_count']} finger")
                 await send_gesture(gesture_state["max_finger_count"], "slide_left")
 
         # Same applies here, but now with the y-axis
         else:
             if gesture_state["current_y"] > gesture_state["start_y"]:
-                print(f"Slide down - {gesture_state['finger_count']} finger")
+                print(f"Slide down - {gesture_state['max_finger_count']} finger")
                 await send_gesture(gesture_state["max_finger_count"], "slide_down")
 
             else:
-                print(f"Slide up - {gesture_state['finger_count']} finger")
+                print(f"Slide up - {gesture_state['max_finger_count']} finger")
                 await send_gesture(gesture_state["max_finger_count"], "slide_up")
 
 
@@ -164,7 +164,7 @@ async def read_events(device):
                 gesture_state["current_y"] = event.value
                 if not gesture_state["start_set"]:
                     gesture_state["start_y"] = event.value
-                    if gesture_state["start_y"] is not None:
+                    if gesture_state["start_x"] is not None:
                         gesture_state["start_set"] = True
 
             # Code 325 (BTN_TOOL_FINGER): 1 finger on pad
