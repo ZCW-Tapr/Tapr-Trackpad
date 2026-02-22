@@ -129,8 +129,8 @@ async def read_events(device):
             # Code 330 (BTN_TOUCH) value 1: Touch Down
             if event.code == 330 and event.value == 1:
                 gesture_state["touching"] = True
-                # gesture_state["start_x"] = 0
-                # gesture_state["start_y"] = 0
+                gesture_state["start_x"] = gesture_state["current_x"]
+                gesture_state["start_y"] = gesture_state["current_y"]
                 gesture_state["current_slot"] = 0
                 gesture_state["max_finger_count"] = 0
                 gesture_state["start_set"] = False
