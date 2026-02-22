@@ -133,7 +133,7 @@ async def read_events(device):
                 gesture_state["start_y"] = gesture_state["current_y"]
                 gesture_state["current_slot"] = 0
                 gesture_state["max_finger_count"] = 0
-                gesture_state["start_set"] = False
+                gesture_state["start_set"] = True
 
 
                 # Cancel any pending gesture processing from previous touch
