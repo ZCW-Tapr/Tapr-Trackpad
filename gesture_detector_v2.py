@@ -6,6 +6,7 @@ import time
 import json
 import websockets
 
+DEBUG_MODE = True
 WS_URL = ("ws://YOUR_BACKEND_IP:8080/ws/gestures")
 
 async def send_gesture(finger_count, gesture_type, value=None):
@@ -108,6 +109,21 @@ async def read_events(device):
 
     async for event in device.async_read_loop():
         if event.type == 1 or event.type == 3:
+            if DEBUG_MODE:
+                if event.code == 330:
+                    print(f"[TOUCH] {'DOWN' if event.value == 1 else 'UP'}")
+                elif event.code == 53 and gesture_state["current_slot"] == 0:
+                    print(f"[POS] X={event.value}")
+                elif event.code == 54 and gesture_state["current_slot"] == 0:
+                    print(f"[POS] Y={event.value}")
+                elif event.code == 325 and event.value == 1:
+                    print(f"[FINGERS] 1")
+                elif event.code == 333 and event.value == 1:
+                    print(f"[FINGERS] 2")
+                elif event.code == 57:
+                    print(f"[TRACK] ID={'LIFTED' if event.value == -1 else event.value}")
+
+
 
             # Code 330 (BTN_TOUCH) value 1: First finger makes contact
             if event.code == 330 and event.value == 1:
