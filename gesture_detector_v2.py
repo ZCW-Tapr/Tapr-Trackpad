@@ -47,13 +47,14 @@ gesture_state = {
     "touching": False,       # Whether any finger is currently on the pad
     "current_slot": 0,      # Which finger slot is being reported (0=first, 1=second)
     "last_tap_time": 0,      # Timing between finger tap interactions
-    "max_finger_count": 0
+    "max_finger_count": 0,
+    "start_set": False
 }
 
 # <-- Process Gesture -->
 # Called 300ms after all fingers lift to allow finger count to settle
 async def process_gesture():
-    await asyncio.sleep(0.3)
+    await asyncio.sleep(0.15)
 
     # ***Protect process_gesture from None values***
     if gesture_state["start_x"] is None or gesture_state["start_y"] is None:
@@ -125,13 +126,15 @@ async def read_events(device):
 
 
 
-            # Code 330 (BTN_TOUCH) value 1: First finger makes contact
+            # Code 330 (BTN_TOUCH) value 1: Touch Down
             if event.code == 330 and event.value == 1:
                 gesture_state["touching"] = True
-                gesture_state["start_x"] = None
-                gesture_state["start_y"] = None
+                # gesture_state["start_x"] = 0
+                # gesture_state["start_y"] = 0
                 gesture_state["current_slot"] = 0
                 gesture_state["max_finger_count"] = 0
+                gesture_state["start_set"] = False
+
 
                 # Cancel any pending gesture processing from previous touch
                 if pending_task is not None:
@@ -142,7 +145,7 @@ async def read_events(device):
             elif event.code == 47:
                 gesture_state["current_slot"] = event.value
 
-            # Code 330 (BTN_TOUCH) value 0: All fingers released
+            # Code 330 (BTN_TOUCH) value 0: Touch Up block
             elif event.code == 330 and event.value == 0:
                 gesture_state["touching"] = False
                 # Schedule gesture processing after 100ms delay
@@ -151,14 +154,18 @@ async def read_events(device):
             # Code 53 (ABS_MT_POSITION_X): Finger X position (only track slot 0)
             elif event.code == 53 and gesture_state["current_slot"] == 0:
                 gesture_state["current_x"] = event.value
-                if gesture_state["start_x"] is None:
+                if not gesture_state["start_set"]:
                     gesture_state["start_x"] = event.value
+                    if gesture_state["start_y"] is not None:
+                        gesture_state["start_set"] = True
 
             # Code 54 (ABS_MT_POSITION_Y): Finger Y position (only track slot 0)
             elif event.code == 54 and gesture_state["current_slot"] == 0:
                 gesture_state["current_y"] = event.value
-                if gesture_state["start_y"] is None:
+                if not gesture_state["start_set"]:
                     gesture_state["start_y"] = event.value
+                    if gesture_state["start_y"] is not None:
+                        gesture_state["start_set"] = True
 
             # Code 325 (BTN_TOOL_FINGER): 1 finger on pad
             elif event.code == 325 and event.value == 1:
