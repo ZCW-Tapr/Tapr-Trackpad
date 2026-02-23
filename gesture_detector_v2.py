@@ -48,7 +48,9 @@ gesture_state = {
     "current_slot": 0,      # Which finger slot is being reported (0=first, 1=second)
     "last_tap_time": 0,      # Timing between finger tap interactions
     "max_finger_count": 0,
-    "start_set": False
+    "start_set": False,
+    "end_x": None,
+    "end_y": None
 }
 
 # <-- Process Gesture -->
@@ -57,10 +59,10 @@ async def process_gesture():
     await asyncio.sleep(0.15)
 
     # ***Protect process_gesture from None values***
-    if gesture_state["start_x"] is None or gesture_state["start_y"] is None:
+    if gesture_state["end_x"] is None or gesture_state["end_y"] is None:
         return
-    dx = abs(gesture_state["current_x"] - gesture_state["start_x"])
-    dy = abs(gesture_state["current_y"] - gesture_state["start_y"])
+    dx = abs(gesture_state["end_x"] - gesture_state["start_x"])
+    dy = abs(gesture_state["end_y"] - gesture_state["start_y"])
     print(f"DEBUG: dx={dx}, dy={dy}, fingers={gesture_state['max_finger_count']}")
 
     # *** If tapping, make sure that movement does not exceed 50 pixels either direction ***
@@ -83,7 +85,7 @@ async def process_gesture():
         if dx > dy:
             # When the finger releases from the pad, if the ending state is greater than where it started in positive
             # value, then this is confirmation for a slide right.
-            if gesture_state["current_x"] > gesture_state["start_x"]:
+            if gesture_state["end_x"] > gesture_state["start_x"]:
                 print(f"Slide right - {gesture_state['max_finger_count']} finger")
                 await send_gesture(gesture_state["max_finger_count"], "slide_right")
 
@@ -94,7 +96,7 @@ async def process_gesture():
 
         # Same applies here, but now with the y-axis
         else:
-            if gesture_state["current_y"] > gesture_state["start_y"]:
+            if gesture_state["end_y"] > gesture_state["start_y"]:
                 print(f"Slide down - {gesture_state['max_finger_count']} finger")
                 await send_gesture(gesture_state["max_finger_count"], "slide_down")
 
@@ -148,14 +150,17 @@ async def read_events(device):
             # Code 330 (BTN_TOUCH) value 0: Touch Up block
             elif event.code == 330 and event.value == 0:
                 gesture_state["touching"] = False
-                # Schedule gesture processing after 100ms delay
+                gesture_state["end_x"] = gesture_state["current_x"]
+                gesture_state["end_y"] = gesture_state["current_y"]
+                gesture_state["start_set"] = False
+                gesture_state["current_x"] = None
+                gesture_state["current_y"] = None
                 pending_task = asyncio.create_task(process_gesture())
 
             # Code 53 (ABS_MT_POSITION_X): Finger X position (only track slot 0)
             elif event.code == 53 and gesture_state["current_slot"] == 0:
-                if gesture_state["start_set"]:
-                    prev = gesture_state["current_x"]
-                    if prev is not None and abs(event.value - prev) > 200:
+                if gesture_state["start_set"] and gesture_state["current_x"] is not None:
+                    if abs(event.value - gesture_state["current_x"]) > 200:
                         pass  # Skip kernel position jump
                     else:
                         gesture_state["current_x"] = event.value
@@ -164,9 +169,8 @@ async def read_events(device):
 
             # Code 54 (ABS_MT_POSITION_Y): Finger Y position (only track slot 0)
             elif event.code == 54 and gesture_state["current_slot"] == 0:
-                if gesture_state["start_set"]:
-                    prev = gesture_state["current_y"]
-                    if prev is not None and abs(event.value - prev) > 200:
+                if gesture_state["start_set"] and gesture_state["current_y"] is not None:
+                    if abs(event.value - gesture_state["current_y"]) > 200:
                         pass  # Skip kernel position jump
                     else:
                         gesture_state["current_y"] = event.value
