@@ -131,7 +131,7 @@ async def read_events(device):
                 gesture_state["touching"] = True
                 gesture_state["start_x"] = gesture_state["current_x"]
                 gesture_state["start_y"] = gesture_state["current_y"]
-                # gesture_state["current_slot"] = 0   TO BE DELETED
+                gesture_state["current_slot"] = 0
                 gesture_state["max_finger_count"] = 0
                 gesture_state["start_set"] = True
 
@@ -153,19 +153,25 @@ async def read_events(device):
 
             # Code 53 (ABS_MT_POSITION_X): Finger X position (only track slot 0)
             elif event.code == 53 and gesture_state["current_slot"] == 0:
-                gesture_state["current_x"] = event.value
-                if not gesture_state["start_set"]:
-                    gesture_state["start_x"] = event.value
-                    if gesture_state["start_y"] is not None:
-                        gesture_state["start_set"] = True
+                if gesture_state["start_set"]:
+                    prev = gesture_state["current_x"]
+                    if prev is not None and abs(event.value - prev) > 200:
+                        pass  # Skip kernel position jump
+                    else:
+                        gesture_state["current_x"] = event.value
+                else:
+                    gesture_state["current_x"] = event.value
 
             # Code 54 (ABS_MT_POSITION_Y): Finger Y position (only track slot 0)
             elif event.code == 54 and gesture_state["current_slot"] == 0:
-                gesture_state["current_y"] = event.value
-                if not gesture_state["start_set"]:
-                    gesture_state["start_y"] = event.value
-                    if gesture_state["start_x"] is not None:
-                        gesture_state["start_set"] = True
+                if gesture_state["start_set"]:
+                    prev = gesture_state["current_y"]
+                    if prev is not None and abs(event.value - prev) > 200:
+                        pass  # Skip kernel position jump
+                    else:
+                        gesture_state["current_y"] = event.value
+                else:
+                    gesture_state["current_y"] = event.value
 
             # Code 325 (BTN_TOOL_FINGER): 1 finger on pad
             elif event.code == 325 and event.value == 1:
