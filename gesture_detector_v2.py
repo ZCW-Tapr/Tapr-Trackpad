@@ -162,7 +162,7 @@ async def read_events(device):
 
             # Code 53 (ABS_MT_POSITION_X): Finger X position (only track slot 0)
             elif event.code == 53 and gesture_state["current_slot"] == 0:
-                if gesture_state["position_locked"]:
+                if gesture_state["position_locked"] and gesture_state["start_set"]:
                     pass
                 elif gesture_state["start_set"] and gesture_state["current_x"] is not None:
                     if abs(event.value - gesture_state["current_x"]) > 200:
@@ -174,7 +174,7 @@ async def read_events(device):
 
             # Code 54 (ABS_MT_POSITION_Y): Finger Y position (only track slot 0)
             elif event.code == 54 and gesture_state["current_slot"] == 0:
-                if gesture_state["position_locked"]:
+                if gesture_state["position_locked"] and gesture_state["start_set"]:
                     pass
                 elif gesture_state["start_set"] and gesture_state["current_y"] is not None:
                     if abs(event.value - gesture_state["current_y"]) > 200:
