@@ -135,7 +135,7 @@ async def read_events(device):
                 gesture_state["touching"] = True
                 gesture_state["start_x"] = gesture_state["current_x"]
                 gesture_state["start_y"] = gesture_state["current_y"]
-                gesture_state["current_slot"] = 0
+                # gesture_state["current_slot"] = 0
                 gesture_state["max_finger_count"] = 0
                 gesture_state["start_set"] = True
                 gesture_state["position_locked"] = False
