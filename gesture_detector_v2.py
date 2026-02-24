@@ -50,7 +50,8 @@ gesture_state = {
     "max_finger_count": 0,
     "start_set": False,
     "end_x": None,
-    "end_y": None
+    "end_y": None,
+    "position_locked": False
 }
 
 # <-- Process Gesture -->
@@ -136,6 +137,7 @@ async def read_events(device):
                 gesture_state["current_slot"] = 0
                 gesture_state["max_finger_count"] = 0
                 gesture_state["start_set"] = True
+                gesture_state["position_locked"] = False
 
 
                 # Cancel any pending gesture processing from previous touch
@@ -159,9 +161,11 @@ async def read_events(device):
 
             # Code 53 (ABS_MT_POSITION_X): Finger X position (only track slot 0)
             elif event.code == 53 and gesture_state["current_slot"] == 0:
-                if gesture_state["start_set"] and gesture_state["current_x"] is not None:
+                if gesture_state["position_locked"]:
+                    pass
+                elif gesture_state["start_set"] and gesture_state["current_x"] is not None:
                     if abs(event.value - gesture_state["current_x"]) > 200:
-                        pass  # Skip kernel position jump
+                        pass
                     else:
                         gesture_state["current_x"] = event.value
                 else:
@@ -169,9 +173,11 @@ async def read_events(device):
 
             # Code 54 (ABS_MT_POSITION_Y): Finger Y position (only track slot 0)
             elif event.code == 54 and gesture_state["current_slot"] == 0:
-                if gesture_state["start_set"] and gesture_state["current_y"] is not None:
+                if gesture_state["position_locked"]:
+                    pass
+                elif gesture_state["start_set"] and gesture_state["current_y"] is not None:
                     if abs(event.value - gesture_state["current_y"]) > 200:
-                        pass  # Skip kernel position jump
+                        pass
                     else:
                         gesture_state["current_y"] = event.value
                 else:
@@ -186,6 +192,10 @@ async def read_events(device):
             elif event.code == 333 and event.value == 1:
                 gesture_state["finger_count"] = 2
                 gesture_state["max_finger_count"] = max(gesture_state["max_finger_count"], 2)
+
+            # Code 57 (ABS_MT_TRACKING_ID) value -1: A finger lifted; Lift handler
+            elif event.code == 57 and event.value == -1:
+                gesture_state["position_locked"] = True
 
 #Start
 if trackpad is not None:
