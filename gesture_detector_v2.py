@@ -62,51 +62,48 @@ gesture_state = {
 async def process_gesture():
     await asyncio.sleep(0.15)
 
-    # ***Protect process_gesture from None values***
+# *** Protect process_gesture from None values ***
     if gesture_state["end_x"] is None or gesture_state["end_y"] is None:
         return
     dx = abs(gesture_state["end_x"] - gesture_state["start_x"])
     dy = abs(gesture_state["end_y"] - gesture_state["start_y"])
-    print(f"DEBUG: dx={dx}, dy={dy}, fingers={gesture_state['max_finger_count']}")
+    fingers = gesture_state["max_finger_count"]
+    print(f"DEBUG: dx={dx}, dy={dy}, fingers={fingers}")
 
-    # *** If tapping, make sure that movement does not exceed 50 pixels either direction ***
+# *** If tapping, make sure that movement does not exceed 50 pixels either direction ***
     if dx < 50 and dy < 50:
-        # Time tracking
         now = time.time()
-        # Measuring tapping time at 500ms
         if now - gesture_state["last_tap_time"] < 0.5:
             gesture_state["last_tap_time"] = 0
-            print(f"Double Tap detected - {gesture_state['max_finger_count']} finger")
-            await send_gesture(gesture_state["max_finger_count"], "double_tap")
+            print(f"Double Tap detected - {fingers} finger")
+            asyncio.create_task(send_gesture(fingers, "double_tap"))
         else:
             gesture_state["last_tap_time"] = now
-            print(f"Tap detected - {gesture_state['max_finger_count']} finger")
-            await send_gesture(gesture_state["max_finger_count"], "tap")
+            print(f"Tap detected - {fingers} finger")
+            asyncio.create_task(send_gesture(fingers, "tap"))
 
     else:
-        # If finger moves more in the x-axis and above 50 pixels from starting position, then it checks if the state
-        # moved significantly from the starting position of the finger.
+        # If finger moves more in the x-axis and above 50 pixels from starting position, then it
+        # checks if the state moved significantly from the starting position of the finger
         if dx > dy:
             # When the finger releases from the pad, if the ending state is greater than where it started in positive
             # value, then this is confirmation for a slide right.
             if gesture_state["end_x"] > gesture_state["start_x"]:
-                print(f"Slide right - {gesture_state['max_finger_count']} finger")
-                await send_gesture(gesture_state["max_finger_count"], "slide_right")
-
+                print(f"Slide right - {fingers} finger")
+                asyncio.create_task(send_gesture(fingers, "slide_right"))
             # Or if the finger releases from the pad and the value is negative on the x-axis, then it's a slide left.
             else:
-                print(f"Slide left - {gesture_state['max_finger_count']} finger")
-                await send_gesture(gesture_state["max_finger_count"], "slide_left")
+                print(f"Slide left - {fingers} finger")
+                asyncio.create_task(send_gesture(fingers, "slide_left"))
 
-        # Same applies here, but now with the y-axis
+        # Same applies here, but now with the emphasis on the y-axis
         else:
             if gesture_state["end_y"] > gesture_state["start_y"]:
-                print(f"Slide down - {gesture_state['max_finger_count']} finger")
-                await send_gesture(gesture_state["max_finger_count"], "slide_down")
-
+                print(f"Slide down - {fingers} finger")
+                asyncio.create_task(send_gesture(fingers, "slide_down"))
             else:
-                print(f"Slide up - {gesture_state['max_finger_count']} finger")
-                await send_gesture(gesture_state["max_finger_count"], "slide_up")
+                print(f"Slide up - {fingers} finger")
+                asyncio.create_task(send_gesture(fingers, "slide_up"))
 
 
 # <-- Read Events Loop -->
