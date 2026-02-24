@@ -10,6 +10,9 @@ DEBUG_MODE = True
 WS_URL = ("ws://YOUR_BACKEND_IP:8080/ws/gestures")
 
 async def send_gesture(finger_count, gesture_type, value=None):
+    if "YOUR_BACKEND_IP" in WS_URL:
+        return
+
     message = {
         "fingerCount": finger_count,
         "gestureType": gesture_type,
