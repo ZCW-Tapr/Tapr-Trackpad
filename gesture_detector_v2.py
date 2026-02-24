@@ -60,6 +60,7 @@ gesture_state = {
 # <-- Process Gesture -->
 # Called 300ms after all fingers lift to allow finger count to settle
 async def process_gesture():
+    print("DEBUG: process_gesture started")
     await asyncio.sleep(0.15)
 
 # *** Protect process_gesture from None values ***
