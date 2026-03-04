@@ -48,7 +48,6 @@ async def read_events(device):
                 gesture_state["touching"] = False
                 gesture_state["end_x"] = gesture_state["current_x"]
                 gesture_state["end_y"] = gesture_state["current_y"]
-                gesture_state["last_touch_up_time"] = time.time()
                 gesture_state["start_set"] = False
                 gesture_state["current_x"] = None
                 gesture_state["current_y"] = None
