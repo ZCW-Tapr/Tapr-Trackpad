@@ -17,5 +17,6 @@ gesture_state = {
     "start_set": False,
     "end_x": None,
     "end_y": None,
-    "position_locked": False
+    "position_locked": False,
+    "pending_tap_task": None
 }

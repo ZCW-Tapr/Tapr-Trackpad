@@ -26,12 +26,22 @@ async def process_gesture():
         now = time.time()
         if now - gesture_state["last_tap_time"] < 0.5:
             gesture_state["last_tap_time"] = 0
+            # Cancel the pending single tap
+            if gesture_state.get("pending_tap_task"):
+                gesture_state["pending_tap_task"].cancel()
+                gesture_state["pending_tap_task"] = None
             print(f"Double Tap detected - {fingers} finger")
             asyncio.create_task(send_gesture(fingers, "double_tap"))
         else:
             gesture_state["last_tap_time"] = now
-            print(f"Tap detected - {fingers} finger")
-            asyncio.create_task(send_gesture(fingers, "tap"))
+
+            # Delay single tap to wait for possible double tap
+            async def delayed_tap(f):
+                await asyncio.sleep(0.5)
+                print(f"Tap detected - {f} finger")
+                await send_gesture(f, "tap")
+
+            gesture_state["pending_tap_task"] = asyncio.create_task(delayed_tap(fingers))
 
     else:
         # Slide detection - check which axis had more movement
