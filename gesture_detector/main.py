@@ -39,11 +39,6 @@ async def read_events(device):
                 gesture_state["start_set"] = True
                 gesture_state["position_locked"] = False
 
-                # Cancel any pending gesture processing from previous touch
-                if pending_task is not None:
-                    pending_task.cancel()
-                    pending_task = None
-
             # --- Finger Slot Switch ---
             elif event.code == 47:
                 gesture_state["current_slot"] = event.value
@@ -53,6 +48,7 @@ async def read_events(device):
                 gesture_state["touching"] = False
                 gesture_state["end_x"] = gesture_state["current_x"]
                 gesture_state["end_y"] = gesture_state["current_y"]
+                gesture_state["last_touch_up_time"] = time.time()
                 gesture_state["start_set"] = False
                 gesture_state["current_x"] = None
                 gesture_state["current_y"] = None
