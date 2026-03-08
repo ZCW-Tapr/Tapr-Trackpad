@@ -24,6 +24,8 @@ async def process_gesture():
     # If movement is under 50 pixels in both directions, it's a tap
     if dx < 50 and dy < 50:
         now = time.time()
+
+    #This times the gap between release of finger during tapping pattern.
         if now - gesture_state["last_tap_time"] < 0.5:
             gesture_state["last_tap_time"] = 0
             # Cancel the pending single tap
@@ -48,14 +50,18 @@ async def process_gesture():
         if dx > dy:
             if gesture_state["end_x"] > gesture_state["start_x"]:
                 print(f"Slide right - {fingers} finger")
-                asyncio.create_task(send_gesture(fingers, "slide_right"))
+                asyncio.create_task(send_gesture(fingers, "slide_right", 1))
+
             else:
                 print(f"Slide left - {fingers} finger")
-                asyncio.create_task(send_gesture(fingers, "slide_left"))
+                asyncio.create_task(send_gesture(fingers, "slide_left", -1))
+
         else:
             if gesture_state["end_y"] > gesture_state["start_y"]:
                 print(f"Slide down - {fingers} finger")
-                asyncio.create_task(send_gesture(fingers, "slide_down"))
+                asyncio.create_task(send_gesture(fingers, "slide_down", -(dy // 10)))
+
             else:
                 print(f"Slide up - {fingers} finger")
-                asyncio.create_task(send_gesture(fingers, "slide_up"))
+                asyncio.create_task(send_gesture(fingers, "slide_up", dy // 10))
+
