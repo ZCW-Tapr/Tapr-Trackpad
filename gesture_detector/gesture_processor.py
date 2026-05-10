@@ -22,11 +22,11 @@ async def process_gesture():
     print(f"DEBUG: dx={dx}, dy={dy}, fingers={fingers}")
 
     # If movement is under 50 pixels in both directions, it's a tap
-    if dx < 50 and dy < 50:
+    if dx < 80 and dy < 80:
         now = time.time()
 
     #This times the gap between release of finger during tapping pattern.
-        if now - gesture_state["last_tap_time"] < 0.5:
+        if now - gesture_state["last_tap_time"] < 0.6:
             gesture_state["last_tap_time"] = 0
             # Cancel the pending single tap
             if gesture_state.get("pending_tap_task"):
@@ -39,7 +39,7 @@ async def process_gesture():
 
             # Delay single tap to wait for possible double tap
             async def delayed_tap(f):
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(0.6)
                 print(f"Tap detected - {f} finger")
                 await send_gesture(f, "tap")
 
