@@ -19,6 +19,6 @@ async def send_gesture(finger_count, gesture_type, value=None):
     try:
         async with websockets.connect(WS_URL) as ws:
             await ws.send(json.dumps(message))
-            print(f"Sent: {message}")
+            print(f"[PYTHON-SEND] {message}")
     except Exception as e:
         print(f"WebSocket error: {e}")
